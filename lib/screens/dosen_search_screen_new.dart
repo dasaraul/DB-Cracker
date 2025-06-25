@@ -105,21 +105,28 @@ class _DosenSearchScreenNewState extends State<DosenSearchScreenNew>
       backgroundColor: CtOSColors.background,
       appBar: _buildAppBar(),
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildSearchSection(),
-            if (_searchResults.isNotEmpty && _ptList.isNotEmpty)
-              _buildFilterSection(),
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: _buildMainContent(),
-              ),
-            ),
-            _buildFooter(),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
+              children: [
+                _buildHeader(),
+                _buildSearchSection(),
+                if (_searchResults.isNotEmpty && _ptList.isNotEmpty)
+                  _buildFilterSection(),
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    constraints: BoxConstraints(
+                      maxHeight: constraints.maxHeight -
+                          200, // Reserve space for header/footer
+                    ),
+                    child: _buildMainContent(),
+                  ),
+                ),
+                _buildFooter(),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -495,30 +502,25 @@ class _DosenSearchScreenNewState extends State<DosenSearchScreenNew>
     final isEven = index % 2 == 0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8.0),
-      child: CtOSListItem(
-        title: dosen.nama,
-        subtitle: 'NIDN: ${dosen.nidn}\n${dosen.namaProdi}',
-        trailing: dosen.namaPt,
-        leadingIcon: Container(
-          width: 40.0,
-          height: 40.0,
-          decoration: BoxDecoration(
-            color: CtOSColors.background,
-            borderRadius: BorderRadius.circular(4.0),
-            border: Border.all(
-              color: isEven ? CtOSColors.primary : CtOSColors.secondary,
-            ),
-          ),
-          child: Center(
-            child: CtOSText(
-              dosen.nama.isNotEmpty ? dosen.nama[0].toUpperCase() : 'D',
-              fontSize: 18.0,
-              fontWeight: FontWeight.bold,
-              color: isEven ? CtOSColors.primary : CtOSColors.secondary,
-            ),
-          ),
+      margin: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: CtOSColors.surface,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: isEven ? CtOSColors.primary : CtOSColors.secondary,
+          width: 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: (isEven ? CtOSColors.primary : CtOSColors.secondary)
+                .withValues(alpha: 0.1),
+            blurRadius: 4.0,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
         onTap: () {
           Navigator.pushNamed(
             context,
@@ -526,6 +528,104 @@ class _DosenSearchScreenNewState extends State<DosenSearchScreenNew>
             arguments: {'dosenName': dosen.nama},
           );
         },
+        borderRadius: BorderRadius.circular(8.0),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 60.0,
+              height: 60.0,
+              decoration: BoxDecoration(
+                color: CtOSColors.background,
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(
+                  color: isEven ? CtOSColors.primary : CtOSColors.secondary,
+                  width: 2.0,
+                ),
+              ),
+              child: Center(
+                child: CtOSText(
+                  dosen.nama.isNotEmpty ? dosen.nama[0].toUpperCase() : 'D',
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: isEven ? CtOSColors.primary : CtOSColors.secondary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16.0),
+
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nama Dosen
+                  CtOSText(
+                    dosen.nama,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: CtOSColors.textPrimary,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4.0),
+
+                  // NIDN
+                  if (dosen.nidn.isNotEmpty)
+                    CtOSText(
+                      'NIDN: ${dosen.nidn}',
+                      fontSize: 12.0,
+                      color: isEven ? CtOSColors.primary : CtOSColors.secondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  const SizedBox(height: 4.0),
+
+                  // Program Studi
+                  CtOSText(
+                    dosen.namaProdi,
+                    fontSize: 13.0,
+                    color: CtOSColors.textSecondary,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8.0),
+
+                  // Perguruan Tinggi
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0, vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color:
+                          (isEven ? CtOSColors.primary : CtOSColors.secondary)
+                              .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4.0),
+                      border: Border.all(
+                        color:
+                            (isEven ? CtOSColors.primary : CtOSColors.secondary)
+                                .withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: CtOSText(
+                      dosen.namaPt,
+                      fontSize: 11.0,
+                      color: isEven ? CtOSColors.primary : CtOSColors.secondary,
+                      fontWeight: FontWeight.w600,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Arrow Icon
+            Icon(
+              Icons.arrow_forward_ios,
+              color: CtOSColors.textSecondary,
+              size: 16.0,
+            ),
+          ],
+        ),
       ),
     );
   }

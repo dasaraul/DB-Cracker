@@ -15,65 +15,66 @@ class MultiApiFactory {
 
   /// Private constructor
   MultiApiFactory._internal();
-  
+
   /// Factory constructor
   factory MultiApiFactory() {
     return _instance;
   }
-  
+
   /// API Factory untuk PDDIKTI
   final ApiFactory _pddiktiApi = ApiFactory();
-  
+
   /// API Services Integration
   final ApiServicesIntegration _apiServices = ApiServicesIntegration();
-  
+
   /// Base URL untuk API Data Mahasiswa Kemdikbud
   final String _kemdikbudApiUrl = 'https://api-frontend.kemdikbud.go.id';
-  
+
   /// Header untuk request
   Map<String, String> get _headers => {
-    'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
-    'Origin': 'https://indonesia-public-static-api.vercel.app',
-    'Referer': 'https://indonesia-public-static-api.vercel.app',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
-  };
-  
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
+        'Origin': 'https://indonesia-public-static-api.vercel.app',
+        'Referer': 'https://indonesia-public-static-api.vercel.app',
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+      };
+
   /// Encode parameter URL
   String _parseString(String text) {
     return Uri.encodeComponent(text);
   }
-  
+
   /// Metode utama untuk mencari data mahasiswa dari berbagai sumber API
   Future<List<Mahasiswa>> searchAllSources(String keyword) async {
     List<Mahasiswa> results = [];
     List<Future<List<Mahasiswa>>> futures = [];
-    
+
     // Cari data dari PDDIKTI
     futures.add(_pddiktiApi.searchMahasiswa(keyword));
-    
+
     // Cari data dari Kemdikbud
     futures.add(_searchKemdikbud(keyword));
-    
+
     // Cari data dari API lain dan konversi ke model Mahasiswa
     futures.add(_searchFromEducationApis(keyword));
-    
+
     // Jalankan semua pencarian secara paralel
     try {
       final responses = await Future.wait(futures);
-      
+
       // Gabungkan semua hasil
       for (var response in responses) {
         results.addAll(response);
       }
-      
+
       // Hapus duplikat berdasarkan kombinasi nama dan nim
       final uniqueResults = <String, Mahasiswa>{};
       for (var mahasiswa in results) {
         final key = '${mahasiswa.nama}-${mahasiswa.nim}';
         uniqueResults[key] = mahasiswa;
       }
-      
+
       return uniqueResults.values.toList();
     } catch (e) {
       print('Error mencari dari semua sumber: $e');
@@ -81,13 +82,13 @@ class MultiApiFactory {
       return results;
     }
   }
-  
+
   /// Cari data mahasiswa dari API pendidikan lain
   Future<List<Mahasiswa>> _searchFromEducationApis(String keyword) async {
     try {
       // Dapatkan data dari API pendidikan
       final rawData = await _apiServices.searchEducationData(keyword);
-      
+
       // Konversi ke model Mahasiswa
       return _apiServices.convertToMahasiswa(rawData);
     } catch (e) {
@@ -95,94 +96,100 @@ class MultiApiFactory {
       return [];
     }
   }
-  
+
   /// Cari data mahasiswa dari API Kemdikbud
   Future<List<Mahasiswa>> _searchKemdikbud(String keyword) async {
     try {
-      final Uri url = Uri.parse('$_kemdikbudApiUrl/hit_mhs/${_parseString(keyword)}');
-      
-      final response = await http.get(
-        url,
-        headers: _headers,
-      ).timeout(
-        Duration(seconds: 10),
-      );
-      
+      final Uri url =
+          Uri.parse('$_kemdikbudApiUrl/hit_mhs/${_parseString(keyword)}');
+
+      final response = await http
+          .get(
+            url,
+            headers: _headers,
+          )
+          .timeout(
+            Duration(seconds: 10),
+          );
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        
+
         if (data.containsKey('mahasiswa') && data['mahasiswa'] is List) {
           final List mahasiswaList = data['mahasiswa'] as List;
-          
-          return mahasiswaList.map((item) {
-            if (item is Map<String, dynamic>) {
-              return Mahasiswa(
-                id: item['id_mahasiswa'] ?? '',
-                nama: item['nm_mhs'] ?? '',
-                nim: item['nipd'] ?? '',
-                namaPt: item['nm_pt'] ?? '',
-                singkatanPt: item['kode_pt'] ?? '',
-                namaProdi: item['nm_prodi'] ?? '',
-              );
-            }
-            return Mahasiswa(
-              id: '',
-              nama: '',
-              nim: '',
-              namaPt: '',
-              singkatanPt: '',
-              namaProdi: '',
-            );
-          }).where((m) => m.id.isNotEmpty).toList();
+
+          return mahasiswaList
+              .map((item) {
+                if (item is Map<String, dynamic>) {
+                  return Mahasiswa(
+                    id: item['id_mahasiswa'] ?? '',
+                    nama: item['nm_mhs'] ?? '',
+                    nim: item['nipd'] ?? '',
+                    namaPt: item['nm_pt'] ?? '',
+                    singkatanPt: item['kode_pt'] ?? '',
+                    namaProdi: item['nm_prodi'] ?? '',
+                  );
+                }
+                return Mahasiswa(
+                  id: '',
+                  nama: '',
+                  nim: '',
+                  namaPt: '',
+                  singkatanPt: '',
+                  namaProdi: '',
+                );
+              })
+              .where((m) => m.id.isNotEmpty)
+              .toList();
         }
       }
-      
+
       return [];
     } catch (e) {
       print('Error mencari dari Kemdikbud: $e');
       return [];
     }
   }
-  
+
   /// Cari data dosen dari berbagai sumber
   Future<List<Dosen>> searchAllDosen(String keyword) async {
     try {
       List<Dosen> results = [];
       List<Future<List<Dosen>>> futures = [];
-      
+
       // Cari dari PDDIKTI
       futures.add(_pddiktiApi.searchDosen(keyword));
-      
+
       // Cari dari API lain
       futures.add(_searchDosenFromOtherSources(keyword));
-      
+
       // Jalankan semua pencarian secara paralel
       final responses = await Future.wait(futures);
-      
+
       // Gabungkan semua hasil
       for (var response in responses) {
         results.addAll(response);
       }
-      
+
       // Hapus duplikat berdasarkan kombinasi nama dan nidn
       final uniqueResults = <String, Dosen>{};
       for (var dosen in results) {
         final key = '${dosen.nama}-${dosen.nidn}';
         uniqueResults[key] = dosen;
       }
-      
+
       return uniqueResults.values.toList();
     } catch (e) {
       print('Error mencari dosen: $e');
       // Jika terjadi error, coba kembalikan apa saja yang berhasil
       List<Dosen> backupResults = [];
-      
+
       try {
         // Coba dapatkan dari mock service sebagai fallback
         backupResults = await _pddiktiApi.searchDosen(keyword);
       } catch (e2) {
         print('Error getting data from PDDIKTI: $e2');
-        
+
         // Jika masih error, coba return data mock sederhana
         backupResults = [
           Dosen(
@@ -203,7 +210,7 @@ class MultiApiFactory {
           ),
         ];
       }
-      
+
       return backupResults;
     }
   }
@@ -213,7 +220,7 @@ class MultiApiFactory {
     try {
       // Dapatkan data dari API pendidikan
       final rawData = await _apiServices.searchEducationData(keyword);
-      
+
       // Konversi ke model Dosen
       return _apiServices.convertToDosen(rawData);
     } catch (e) {
@@ -227,7 +234,7 @@ class MultiApiFactory {
     try {
       // Coba dapatkan dari PDDIKTI terlebih dahulu
       final detail = await _pddiktiApi.getMahasiswaDetail(mahasiswaId);
-      
+
       // Tambahkan data eksternal jika ada
       try {
         // Coba untuk memperkaya data dengan sumber-sumber lain
@@ -241,11 +248,11 @@ class MultiApiFactory {
         print('Gagal mendapatkan data tambahan: $e');
         // Tidak perlu melakukan apa-apa, gunakan data yang sudah ada
       }
-      
+
       return detail;
     } catch (e) {
       print('Error mendapatkan detail dari PDDIKTI: $e');
-      
+
       // Fallback to minimal detail
       return MahasiswaDetail(
         id: mahasiswaId,
@@ -266,12 +273,12 @@ class MultiApiFactory {
     }
   }
 
-  /// Mendapatkan detail dosen dari berbagai sumber
+  /// Mendapatkan detail dosen lengkap dari berbagai sumber
   Future<DosenDetail> getDosenDetailFromAllSources(String dosenId) async {
     try {
-      // Coba dapatkan dari PDDIKTI terlebih dahulu
-      final detail = await _pddiktiApi.getDosenProfile(dosenId);
-      
+      // Coba dapatkan detail lengkap dari PDDIKTI terlebih dahulu
+      final detail = await _pddiktiApi.getDosenDetailLengkap(dosenId);
+
       // Tambahkan data eksternal jika ada
       try {
         // Coba untuk memperkaya data dengan sumber-sumber lain jika ada waktu
@@ -280,11 +287,11 @@ class MultiApiFactory {
         print('Gagal mendapatkan data tambahan: $e');
         // Tidak perlu melakukan apa-apa, gunakan data yang sudah ada
       }
-      
+
       return detail;
     } catch (e) {
       print('Error mendapatkan detail dari PDDIKTI: $e');
-      
+
       // Fallback to minimal detail
       return DosenDetail(
         idSdm: dosenId,
@@ -305,22 +312,25 @@ class MultiApiFactory {
       );
     }
   }
-  
+
   /// Mencari detail mahasiswa dari API Kemdikbud
   Future<MahasiswaDetail?> _searchKemdikbudDetail(String mahasiswaId) async {
     try {
-      final Uri url = Uri.parse('$_kemdikbudApiUrl/detail_mhs/${_parseString(mahasiswaId)}');
-      
-      final response = await http.get(
-        url,
-        headers: _headers,
-      ).timeout(
-        Duration(seconds: 10),
-      );
-      
+      final Uri url = Uri.parse(
+          '$_kemdikbudApiUrl/detail_mhs/${_parseString(mahasiswaId)}');
+
+      final response = await http
+          .get(
+            url,
+            headers: _headers,
+          )
+          .timeout(
+            Duration(seconds: 10),
+          );
+
       if (response.statusCode == 200) {
         final dynamic data = jsonDecode(response.body);
-        
+
         if (data is Map<String, dynamic>) {
           // Konversi ke model MahasiswaDetail
           return MahasiswaDetail(
@@ -341,14 +351,14 @@ class MultiApiFactory {
           );
         }
       }
-      
+
       return null;
     } catch (e) {
       print('Error mencari detail dari Kemdikbud: $e');
       return null;
     }
   }
-  
+
   /// Mendapatkan informasi Perguruan Tinggi
   Future<PerguruanTinggiDetail?> getDetailPT(String ptId) async {
     try {
@@ -357,7 +367,7 @@ class MultiApiFactory {
       return detail;
     } catch (e) {
       print('Error mendapatkan detail PT: $e');
-      
+
       // Buat data dummy jika error
       return PerguruanTinggiDetail(
         kelompok: '-',
@@ -386,7 +396,7 @@ class MultiApiFactory {
       );
     }
   }
-  
+
   /// Mendapatkan informasi Program Studi
   Future<ProdiDetail?> getDetailProdi(String prodiId) async {
     try {
@@ -395,7 +405,7 @@ class MultiApiFactory {
       return detail;
     } catch (e) {
       print('Error mendapatkan detail Prodi: $e');
-      
+
       // Buat data dummy jika error
       return ProdiDetail(
         idSp: '-',
@@ -432,7 +442,7 @@ class MultiApiFactory {
       );
     }
   }
-  
+
   /// Mencari data Program Studi
   Future<List<Prodi>> searchProdi(String keyword) async {
     try {
@@ -443,7 +453,7 @@ class MultiApiFactory {
       return [];
     }
   }
-  
+
   /// Mencari data Perguruan Tinggi
   Future<List<PerguruanTinggi>> searchPT(String keyword) async {
     try {
@@ -454,7 +464,7 @@ class MultiApiFactory {
       return [];
     }
   }
-  
+
   /// Mendapatkan daftar Prodi di PT tertentu
   Future<List<ProdiPt>> getProdiInPT(String ptId, int tahun) async {
     try {
@@ -465,7 +475,7 @@ class MultiApiFactory {
       return [];
     }
   }
-  
+
   /// Mencari data lokasi prodi
   Future<Map<String, String>> getProdiLocation(String prodiId) async {
     try {

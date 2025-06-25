@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/mahasiswa.dart';
 import '../utils/constants.dart';
-import '../widgets/hacker_card.dart';
-import 'dart:math';
 
-class HackerResultItem extends StatefulWidget {
+class HackerResultItem extends StatelessWidget {
   final Mahasiswa mahasiswa;
   final VoidCallback onTap;
   final bool isFiltered;
@@ -17,280 +15,149 @@ class HackerResultItem extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _HackerResultItemState createState() => _HackerResultItemState();
-}
-
-class _HackerResultItemState extends State<HackerResultItem> with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  bool _isHovering = false;
-  final Random _random = Random();
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  String _generateHackerCode() {
-    const chars = '0123456789ABCDEF';
-    return String.fromCharCodes(
-      Iterable.generate(
-        8,
-        (_) => chars.codeUnitAt(_random.nextInt(chars.length)),
-      ),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final bool isMobile = size.width < 600;
-    final double avatarSize = isMobile ? 36 : 42;
-    
-    // Ubah warna berdasarkan status filter
-    final Color primaryColor = widget.isFiltered 
-        ? HackerColors.warning 
-        : HackerColors.primary;
-    
-    final Color accentColor = widget.isFiltered 
-        ? HackerColors.warning.withOpacity(0.8) 
-        : HackerColors.accent;
-    
-    // Menggunakan HackerCard alih-alih Card normal
-    return HackerCard(
-      margin: EdgeInsets.symmetric(
-        vertical: isMobile ? 4 : 6, 
-        horizontal: isMobile ? 6 : 8
-      ),
-      backgroundColor: HackerColors.surface,
-      borderColor: _isHovering ? primaryColor : accentColor,
-      onTap: widget.onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: avatarSize,
-                height: avatarSize,
-                decoration: BoxDecoration(
-                  color: HackerColors.surface,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: primaryColor,
-                    width: 1,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    widget.mahasiswa.nama.isNotEmpty
-                        ? widget.mahasiswa.nama[0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      fontFamily: 'Courier',
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.person,
-                          size: 14,
-                          color: primaryColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            "SUBJECT: ${widget.mahasiswa.nama.toUpperCase()}",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: primaryColor,
-                              fontFamily: 'Courier',
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.numbers,
-                          size: 12,
-                          color: accentColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            "ID: ${widget.mahasiswa.nim}",
-                            style: TextStyle(
-                              color: accentColor,
-                              fontSize: 12,
-                              fontFamily: 'Courier',
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: HackerColors.background,
-                  borderRadius: BorderRadius.circular(2),
-                  border: Border.all(
-                    color: accentColor.withOpacity(0.5),
-                    width: 1,
-                  ),
-                ),
-                child: Text(
-                  _generateHackerCode(),
-                  style: TextStyle(
-                    color: accentColor.withOpacity(0.8),
-                    fontSize: 8,
-                    fontFamily: 'Courier',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Divider(
-            color: accentColor,
-            height: 20,
-            thickness: 1,
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: _buildInfoRow(
-                  icon: Icons.school,
-                  label: "INSTITUTION",
-                  value: widget.mahasiswa.namaPt,
-                  labelColor: accentColor,
-                  valueColor: widget.isFiltered 
-                      ? HackerColors.warning 
-                      : HackerColors.text,
-                  highlight: widget.isFiltered,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_forward,
-                color: _isHovering ? primaryColor : accentColor,
-                size: 16,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            icon: Icons.book,
-            label: "PROGRAM",
-            value: widget.mahasiswa.namaProdi,
-            labelColor: accentColor,
-            valueColor: HackerColors.text,
-          ),
-          // Tambahkan sumber data jika tersedia
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                "SOURCE: " + (widget.mahasiswa.id.contains("=") ? "PDDIKTI" : "MULTI-DB"),
-                style: TextStyle(
-                  color: accentColor.withOpacity(0.7),
-                  fontFamily: 'Courier',
-                  fontSize: 8,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
+    final isEven = mahasiswa.hashCode % 2 == 0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: HackerColors.surface,
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: isEven ? HackerColors.primary : HackerColors.accent,
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isEven ? HackerColors.primary : HackerColors.accent)
+                .withValues(alpha: 0.1),
+            blurRadius: 4.0,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    Color? labelColor,
-    Color? valueColor,
-    bool highlight = false,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          size: 12,
-          color: labelColor ?? HackerColors.accent,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: (labelColor ?? HackerColors.accent).withOpacity(0.7),
-                  fontSize: 10,
-                  fontFamily: 'Courier',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8.0),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 60.0,
+              height: 60.0,
+              decoration: BoxDecoration(
+                color: HackerColors.background,
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(
+                  color: isEven ? HackerColors.primary : HackerColors.accent,
+                  width: 2.0,
                 ),
               ),
-              Container(
-                decoration: highlight ? BoxDecoration(
-                  color: HackerColors.warning.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(2),
-                  border: Border.all(
-                    color: HackerColors.warning.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ) : null,
-                padding: highlight ? const EdgeInsets.symmetric(horizontal: 4, vertical: 1) : null,
+              child: Center(
                 child: Text(
-                  value,
+                  mahasiswa.nama.isNotEmpty
+                      ? mahasiswa.nama[0].toUpperCase()
+                      : 'M',
                   style: TextStyle(
-                    color: valueColor ?? HackerColors.text,
-                    fontSize: 12,
+                    fontSize: 24.0,
+                    fontWeight: FontWeight.bold,
+                    color: isEven ? HackerColors.primary : HackerColors.accent,
                     fontFamily: 'Courier',
-                    fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 16.0),
+
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nama Mahasiswa
+                  Text(
+                    mahasiswa.nama,
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                      color: HackerColors.text,
+                      fontFamily: 'Courier',
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4.0),
+
+                  // NIM
+                  if (mahasiswa.nim.isNotEmpty)
+                    Text(
+                      'NIM: ${mahasiswa.nim}',
+                      style: TextStyle(
+                        fontSize: 12.0,
+                        color:
+                            isEven ? HackerColors.primary : HackerColors.accent,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Courier',
+                      ),
+                    ),
+                  const SizedBox(height: 4.0),
+
+                  // Program Studi
+                  Text(
+                    mahasiswa.namaProdi,
+                    style: const TextStyle(
+                      fontSize: 13.0,
+                      color: HackerColors.highlight,
+                      fontFamily: 'Courier',
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8.0),
+
+                  // Perguruan Tinggi
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0, vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color:
+                          (isEven ? HackerColors.primary : HackerColors.accent)
+                              .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(4.0),
+                      border: Border.all(
+                        color: (isEven
+                                ? HackerColors.primary
+                                : HackerColors.accent)
+                            .withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      mahasiswa.namaPt,
+                      style: TextStyle(
+                        fontSize: 11.0,
+                        color:
+                            isEven ? HackerColors.primary : HackerColors.accent,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Courier',
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Arrow Icon
+            Icon(
+              Icons.arrow_forward_ios,
+              color: HackerColors.highlight,
+              size: 16.0,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

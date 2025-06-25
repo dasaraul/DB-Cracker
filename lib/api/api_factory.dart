@@ -11,41 +11,41 @@ import '../models/pt.dart';
 class ApiFactory {
   /// Singleton instance
   static final ApiFactory _instance = ApiFactory._internal();
-  
+
   /// Private constructor
   ApiFactory._internal();
-  
+
   /// Factory constructor
   factory ApiFactory() {
     return _instance;
   }
-  
+
   /// Real API instance
   final PddiktiApi _realApi = PddiktiApi();
-  
+
   /// Mock API instance for web
   final MockPddiktiService _mockService = MockPddiktiService();
-  
+
   /// Flag to force use of mock data
   bool _forceMock = false;
-  
+
   /// Enable mock data for testing
   void enableMockData() {
     _forceMock = true;
   }
-  
+
   /// Disable mock data
   void disableMockData() {
     _forceMock = false;
   }
-  
+
   /// Should use mock data?
   bool get _useMockData {
     // In web environments, we might want to use mock data to avoid CORS issues
     // Also use mock if it's explicitly forced
     return _forceMock || (kIsWeb && !kDebugMode);
   }
-  
+
   /// Pencarian mahasiswa
   Future<List<Mahasiswa>> searchMahasiswa(String keyword) async {
     if (_useMockData) {
@@ -56,7 +56,7 @@ class ApiFactory {
       } catch (e) {
         print('Error with real API, fallback to mock: $e');
         // Fallback to mock data if the real API fails with specific errors
-        if (e.toString().contains('403') || 
+        if (e.toString().contains('403') ||
             e.toString().contains('CORS') ||
             e.toString().contains('XMLHttpRequest')) {
           return _mockService.searchMahasiswa(keyword);
@@ -65,7 +65,7 @@ class ApiFactory {
       }
     }
   }
-  
+
   /// Detail mahasiswa
   Future<MahasiswaDetail> getMahasiswaDetail(String mahasiswaId) async {
     if (_useMockData) {
@@ -76,13 +76,13 @@ class ApiFactory {
         return await _realApi.getMahasiswaDetail(mahasiswaId);
       } catch (e) {
         print('Error with real API, fallback to mock: $e');
-        
+
         // Always fallback to mock on detail errors to ensure the UI can show something
         try {
           return _mockService.getMahasiswaDetail(mahasiswaId);
         } catch (mockError) {
           print('Error with mock service too: $mockError');
-          
+
           // If even the mock service fails, create a minimal valid object
           return MahasiswaDetail(
             id: mahasiswaId,
@@ -104,7 +104,7 @@ class ApiFactory {
       }
     }
   }
-  
+
   /// Pencarian dosen
   Future<List<Dosen>> searchDosen(String keyword) async {
     if (_useMockData) {
@@ -115,7 +115,7 @@ class ApiFactory {
       } catch (e) {
         print('Error with real API, fallback to mock: $e');
         // Fallback to mock data if the real API fails with specific errors
-        if (e.toString().contains('403') || 
+        if (e.toString().contains('403') ||
             e.toString().contains('CORS') ||
             e.toString().contains('XMLHttpRequest')) {
           return _mockService.searchDosen(keyword);
@@ -124,7 +124,7 @@ class ApiFactory {
       }
     }
   }
-  
+
   /// Pencarian program studi
   Future<List<Prodi>> searchProdi(String keyword) async {
     if (_useMockData) {
@@ -136,7 +136,7 @@ class ApiFactory {
       } catch (e) {
         print('Error with real API, fallback to mock: $e');
         // Fallback to mock data if the real API fails with specific errors
-        if (e.toString().contains('403') || 
+        if (e.toString().contains('403') ||
             e.toString().contains('CORS') ||
             e.toString().contains('XMLHttpRequest')) {
           // Implementasi mock untuk prodi jika diperlukan
@@ -146,7 +146,7 @@ class ApiFactory {
       }
     }
   }
-  
+
   /// Pencarian perguruan tinggi
   Future<List<PerguruanTinggi>> searchPt(String keyword) async {
     if (_useMockData) {
@@ -158,7 +158,7 @@ class ApiFactory {
       } catch (e) {
         print('Error with real API, fallback to mock: $e');
         // Fallback to mock data if the real API fails with specific errors
-        if (e.toString().contains('403') || 
+        if (e.toString().contains('403') ||
             e.toString().contains('CORS') ||
             e.toString().contains('XMLHttpRequest')) {
           // Implementasi mock untuk PT jika diperlukan
@@ -168,7 +168,7 @@ class ApiFactory {
       }
     }
   }
-  
+
   /// Mendapatkan detail program studi
   Future<ProdiDetail> getDetailProdi(String prodiId) async {
     if (_useMockData) {
@@ -211,7 +211,7 @@ class ApiFactory {
         return await _realApi.getDetailProdi(prodiId);
       } catch (e) {
         print('Error with real API, fallback to mock: $e');
-        
+
         // Fallback to mock data
         return ProdiDetail(
           idSp: '',
@@ -249,7 +249,7 @@ class ApiFactory {
       }
     }
   }
-  
+
   /// Mendapatkan detail perguruan tinggi
   Future<PerguruanTinggiDetail> getDetailPt(String ptId) async {
     if (_useMockData) {
@@ -284,7 +284,7 @@ class ApiFactory {
         return await _realApi.getDetailPt(ptId);
       } catch (e) {
         print('Error with real API, fallback to mock: $e');
-        
+
         // Fallback to mock data
         return PerguruanTinggiDetail(
           kelompok: 'Universitas',
@@ -314,7 +314,7 @@ class ApiFactory {
       }
     }
   }
-  
+
   /// Mendapatkan daftar program studi di perguruan tinggi
   Future<List<ProdiPt>> getProdiPt(String ptId, int tahun) async {
     if (_useMockData) {
@@ -326,7 +326,7 @@ class ApiFactory {
       } catch (e) {
         print('Error with real API, fallback to mock: $e');
         // Fallback to mock data if the real API fails with specific errors
-        if (e.toString().contains('403') || 
+        if (e.toString().contains('403') ||
             e.toString().contains('CORS') ||
             e.toString().contains('XMLHttpRequest')) {
           // Implementasi mock untuk daftar prodi di PT jika diperlukan
@@ -336,7 +336,7 @@ class ApiFactory {
       }
     }
   }
-  
+
   /// Getter untuk mendapatkan MockPddiktiService
   MockPddiktiService getMockService() {
     return _mockService;
@@ -358,13 +358,13 @@ class ApiFactory {
         return await _realApi.getDosenProfile(dosenId);
       } catch (e) {
         print('Error dengan API asli, fallback ke mock: $e');
-        
+
         // Fallback ke mock data
         try {
           return await _mockService.getDosenProfile(dosenId);
         } catch (mockError) {
           print('Error dengan mock service juga: $mockError');
-          
+
           // Jika bahkan mock service gagal, buat objek minimal valid
           return DosenDetail(
             idSdm: dosenId,
@@ -383,6 +383,60 @@ class ApiFactory {
             riwayatStudi: [],
             riwayatMengajar: [],
           );
+        }
+      }
+    }
+  }
+
+  /// Mendapatkan detail lengkap dosen dengan semua data
+  Future<DosenDetail> getDosenDetailLengkap(String dosenId) async {
+    if (_useMockData) {
+      // Gunakan mock service untuk testing
+      try {
+        return await _mockService.getDosenProfile(dosenId);
+      } catch (e) {
+        print('Error dengan mock service: $e');
+        rethrow;
+      }
+    } else {
+      try {
+        print('Meminta detail lengkap dosen dari API asli untuk id: $dosenId');
+        return await _realApi.getDosenDetailLengkap(dosenId);
+      } catch (e) {
+        print('Error dengan API asli, fallback ke profil dasar: $e');
+
+        // Fallback ke profil dasar
+        try {
+          return await _realApi.getDosenProfile(dosenId);
+        } catch (profileError) {
+          print(
+              'Error dengan profil dasar juga, fallback ke mock: $profileError');
+
+          // Fallback ke mock data
+          try {
+            return await _mockService.getDosenProfile(dosenId);
+          } catch (mockError) {
+            print('Error dengan mock service juga: $mockError');
+
+            // Jika semua gagal, buat objek minimal valid
+            return DosenDetail(
+              idSdm: dosenId,
+              namaDosen: 'Data tidak tersedia',
+              namaPt: 'Data tidak tersedia',
+              namaProdi: 'Data tidak tersedia',
+              jenisKelamin: '-',
+              jabatanAkademik: '-',
+              pendidikanTertinggi: '-',
+              statusIkatanKerja: '-',
+              statusAktivitas: '-',
+              penelitian: [],
+              pengabdian: [],
+              karya: [],
+              paten: [],
+              riwayatStudi: [],
+              riwayatMengajar: [],
+            );
+          }
         }
       }
     }
