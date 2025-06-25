@@ -24,22 +24,21 @@ class FlexibleText extends StatelessWidget {
   Widget build(BuildContext context) {
     // Pastikan ScreenUtils diinisialisasi
     ScreenUtils.init(context);
-    
+
     // Ukuran font yang aman (adaptif dan dibatasi)
-    final safeTextSize = style?.fontSize == null 
-        ? 14.0 
-        : style!.fontSize!.clamp(8.0, ScreenUtils.MAX_FONT_SIZE);
-    
+    final safeTextSize = style?.fontSize == null
+        ? 14.0
+        : style!.fontSize!.clamp(8.0, ScreenUtils.maxFontSize);
+
     final TextStyle defaultStyle = TextStyle(
       fontFamily: 'Courier',
       fontSize: safeTextSize,
       color: Colors.white,
     );
-    
-    final TextStyle effectiveStyle = style?.copyWith(
-      fontSize: safeTextSize
-    ) ?? defaultStyle;
-    
+
+    final TextStyle effectiveStyle =
+        style?.copyWith(fontSize: safeTextSize) ?? defaultStyle;
+
     // Gunakan FittedBox untuk mengatur skala secara otomatis jika diminta
     if (useFittedBox) {
       return FittedBox(
@@ -54,7 +53,7 @@ class FlexibleText extends StatelessWidget {
         ),
       );
     }
-    
+
     // Tampilan text standar yang aman
     return Text(
       text,

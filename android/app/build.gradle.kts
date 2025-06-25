@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.db_cracker"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    // ndkVersion = "27.0.12077973" // Commented out to avoid license issues
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

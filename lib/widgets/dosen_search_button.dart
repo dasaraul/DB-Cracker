@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import '../utils/constants.dart';
 import '../utils/screen_utils.dart';
 import 'flexible_text.dart';
-import '../screens/dosen_search_screen.dart';
+import '../screens/dosen_search_screen_new.dart';
 
 /// Widget tombol untuk navigasi ke layar pencarian dosen
 class DosenSearchButton extends StatelessWidget {
   final bool isCompact;
-  
+
   const DosenSearchButton({
     Key? key,
     this.isCompact = false,
@@ -17,14 +17,14 @@ class DosenSearchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     // Adaptasi berdasarkan ukuran layar
     final bool isMobile = ScreenUtils.isMobileScreen();
-    
+
     return InkWell(
       onTap: () {
         // Navigasi ke pencarian dosen
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DosenSearchScreen(),
+            builder: (context) => const DosenSearchScreenNew(),
           ),
         );
       },
@@ -72,7 +72,7 @@ class DosenSearchButton extends StatelessWidget {
                     ),
                     maxLines: 1,
                   ),
-                  if (!isCompact) 
+                  if (!isCompact)
                     const FlexibleText(
                       "Cari dan akses data dosen seluruh Indonesia",
                       style: TextStyle(
